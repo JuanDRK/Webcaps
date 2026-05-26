@@ -1,6 +1,6 @@
 <?php
 //AGREGA UN PRODUCTO AL CARRITO DE COMPRAS
-function agregarProducto($resultado, $id, $cantidad = 1)
+function agregarProducto($resultado, $id, $cantidad = 1, $talla = null)
 {
     $_SESSION['carrito'][$id] = array(
         'id' => $resultado['id'],
@@ -10,8 +10,8 @@ function agregarProducto($resultado, $id, $cantidad = 1)
         'categoria' => $resultado['categoria'],
         'precio' => $resultado['precio'],
         'cantidad' => $cantidad,
-        'tallas' =>  $resultado['tallas']
-
+        'tallas' =>  $resultado['tallas'],
+        'talla' => $talla
     );
 }
 
@@ -48,6 +48,24 @@ function calcularTotal()
         }
     }
     return $total;
+}
+
+// Genera o recupera el token CSRF de la sesión
+function csrfToken()
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+// Valida que el token CSRF enviado coincida con el de la sesión
+function validarCsrf($token)
+{
+    if (empty($token) || empty($_SESSION['csrf_token'])) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
 }
 
 //DEVUELVE LA CANTIDAD DE PRODUCTOS

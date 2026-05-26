@@ -1,9 +1,16 @@
 <?php
 session_start();
-require 'funcionesCarrito.php';
-require '../vendor/autoload.php';
+require __DIR__ . '/funcionesCarrito.php';
+require __DIR__ . '/../vendor/autoload.php';
+
+use capsweb\Helpers\Csrf;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || !Csrf::validate($_POST['csrf_token'])) {
+        header('Location: index.php');
+        exit;
+    }
+
     //obtengo el id del producto segun el carrito
     $id = $_POST['id'];
     //obtengo la cantidad del producto segun el carrito
@@ -20,4 +27,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     header('Location: index.php');
+    exit;
 }

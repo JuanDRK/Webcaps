@@ -1,105 +1,78 @@
-<style>
-    /* STYLES FOOTER */
-    #pre-footer figure {
-        padding-bottom: 20px;
-        margin: 0;
-        justify-content: center;
-        align-items: center;
-    }
-
-    #pre-footer .social-media a {
-        display: inline-block;
-        text-decoration: none;
-        width: 45px;
-        height: 45px;
-        line-height: 45px;
-        color: #fff;
-        margin-right: 10px;
-        text-align: center;
-        transition: all 300ms ease;
-    }
-
-    #pre-footer .social-media a:hover {
-        transform: scale(1.5);
-    }
-
-    @media screen and (max-width:800px) {
-        #pre-footer figure {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-
-        #pre-footer .about-us {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #pre-footer .social-media {
-            align-items: center;
-            justify-content: center;
-            display: flex;
-            flex-direction: column;
-        }
-    }
-
-    @media screen and (max-width:500px) {
-        .container figure a {
-            width: 300px !important;
-        }
-    }
-</style>
-
-<!-- Pre-Footer de Información -->
-<section id="pre-footer" class="py-5" style="background-color: #202124;">
-    <div class="container-map gap-3" style="padding: 20px 20px 10px 20px;">
-        <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15929.036855565007!2d-76.2980523!3d3.5274827!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3a057a956758ff%3A0x7ab362da06171ea4!2sCaps%20palmira!5e0!3m2!1ses!2sco!4v1681932814096!5m2!1ses!2sco" width="100%" height="350" style="border-radius: 10px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-    </div>
-    <div class="container gap-3">
-        <div class="row">
-            <div class="col-lg-6">
-                <figure>
-                    <a href="#" style="width: 300px;">
-                        <img src="assets/images/caps.png" alt="caps">
-                        <img src="assets/images/culture.png" alt="culture">
-                    </a>
-                </figure>
-            </div>
-            <div class="col-lg-3">
-                <div class="about-us text-light gap-3">
-                    <h2 class="text-uppercase fw-bold">Contacto</h2>
-                    <p><i class="fa-solid fa-house" style="color: #ffffff;"></i> Palmira, Valle del Cauca, Colombia</p>
-                    <p><i class="fa-solid fa-map-pin" style="color: #ffffff;"></i> Cra. 27 #30-63</p>
-                    <p><i class="fa-solid fa-envelope" style="color: #ffffff;"></i> capspalmira@gmail.com</p>
-                    <p><i class="fas fa-phone" style="color: #ffffff;"></i> +57 315 8726969</p>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <div class="social-media text-light d-sm-flex flex-sm-column align-items-center">
-                    <h2 class="text-uppercase fw-bold">Redes sociales</h2>
-                    <div class="d-flex justify-content-start gap-3">
-                        <a target="_blank" href="https://www.facebook.com/Capscultura"><img src="assets/images/metaforas/social_media-facebook.svg" alt="logo facebook"></a>
-                        <a target="_blank" href="https://www.instagram.com/caps_palmira/"><img src="assets/images/metaforas/social_media-instagram.svg" alt="logo instagram"></a>
-                        <a target="_blank" href="https://www.tiktok.com/@capsculture"><img src="assets/images/metaforas/social_media-tik-tok.svg" alt="logo tiktok"></a>
-                    </div>
-                </div>
-            </div>
+<!-- FOOTER -->
+<footer class="bg-brand-900 text-white mt-20">
+  <!-- Mapa moderno -->
+  <div class="relative w-full h-80 bg-brand-800">
+    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15929.036855565007!2d-76.2980523!3d3.5274827!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3a057a956758ff%3A0x7ab362da06171ea4!2sCaps%20palmira!5e0!3m2!1ses!2sco!4v1681932814096!5m2!1ses!2sco"
+      width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" class="grayscale hover:grayscale-0 transition duration-700"></iframe>
+    <!-- Overlay info card -->
+    <div class="absolute bottom-4 left-4 sm:bottom-8 sm:left-8 bg-white/95 backdrop-blur text-brand-900 rounded-xl shadow-2xl p-4 sm:p-5 max-w-xs">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-full bg-brand-accent text-white flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-location-dot"></i>
         </div>
-    </div>
-</section>
-<footer style="background-color: #171717;">
-    <!-- Footer information -->
-    <div class="container text-center py-3">
-        <div class="p-6" style="color: #fff">
-            © 2023 Copyright - Caps Culture
+        <div>
+          <p class="font-black text-sm">CAPS Palmira</p>
+          <p class="text-xs text-gray-500">Cra. 27 #30-63</p>
         </div>
+      </div>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=3.5274827,-76.2980523" target="_blank" class="block text-center bg-brand-900 text-white text-xs font-bold py-2 rounded-lg hover:bg-brand-accent transition mt-1">
+        <i class="fa-solid fa-diamond-turn-right mr-1"></i>Cómo llegar
+      </a>
     </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+      <!-- Logo -->
+      <div class="flex flex-col items-center md:items-start">
+        <a href="/index.php" class="flex items-center gap-2 mb-4">
+          <img src="/assets/images/logo caps circulo.png" alt="logo" class="h-12 w-12 rounded-full object-cover">
+          <div>
+            <div class="font-black text-xl tracking-wider">CAPS</div>
+            <div class="text-xs text-gray-400 tracking-widest">CULTURE</div>
+          </div>
+        </a>
+        <p class="text-gray-400 text-sm text-center md:text-left">Streetwear con identidad.<br>Hecho en Palmira, Colombia.</p>
+      </div>
+
+      <!-- Contacto -->
+      <div class="text-center md:text-left">
+        <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Contacto</h3>
+        <ul class="space-y-3 text-gray-400 text-sm">
+          <li><i class="fa-solid fa-location-dot mr-2 text-brand-accent"></i>Palmira, Valle del Cauca</li>
+          <li><i class="fa-solid fa-road mr-2 text-brand-accent"></i>Cra. 27 #30-63</li>
+          <li><i class="fa-solid fa-envelope mr-2 text-brand-accent"></i>capspalmira@gmail.com</li>
+          <li><i class="fa-solid fa-phone mr-2 text-brand-accent"></i>+57 315 8726969</li>
+        </ul>
+      </div>
+
+      <!-- Redes -->
+      <div class="text-center md:text-left">
+        <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Síguenos</h3>
+        <div class="flex justify-center md:justify-start gap-4">
+          <a href="https://www.facebook.com/Capscultura" target="_blank" class="w-10 h-10 rounded-full bg-brand-700 flex items-center justify-center hover:bg-brand-accent transition transform hover:scale-110">
+            <i class="fa-brands fa-facebook-f text-white"></i>
+          </a>
+          <a href="https://www.instagram.com/caps_palmira/" target="_blank" class="w-10 h-10 rounded-full bg-brand-700 flex items-center justify-center hover:bg-brand-accent transition transform hover:scale-110">
+            <i class="fa-brands fa-instagram text-white"></i>
+          </a>
+          <a href="https://www.tiktok.com/@capsculture" target="_blank" class="w-10 h-10 rounded-full bg-brand-700 flex items-center justify-center hover:bg-brand-accent transition transform hover:scale-110">
+            <i class="fa-brands fa-tiktok text-white"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-brand-700 mt-10 pt-6 text-center text-gray-500 text-sm">
+      © <?= date('Y') ?> Caps Culture. Todos los derechos reservados.
+    </div>
+  </div>
 </footer>
 
-<script src="assets/js/scripts.js"></script>
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-<script async defer src="https://tools.luckyorange.com/core/lo.js?site-id=3ea9358f"></script>
+<!-- WhatsApp Floating Button -->
+<a href="https://wa.me/573158726969" target="_blank" class="fixed bottom-6 right-6 z-50 bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition transform hover:scale-110">
+  <i class="fa-brands fa-whatsapp text-2xl"></i>
+</a>
+
+</body>
+</html>

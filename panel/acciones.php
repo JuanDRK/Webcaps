@@ -1,14 +1,42 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-use FontLib\Table\Type\head;
+require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../src/Helpers/Paths.php';
 
-require '../vendor/autoload.php';
+// Lazy instantiation para evitar errores al cargar la pagina
+$producto = null;
+$categoria = null;
+$noticia = null;
 
-$producto = new capsweb\Productos;
-$categoria = new capsweb\Categorias;
-$noticia = new capsweb\noticias;
+function getProducto() { global $producto; if (!$producto) $producto = new capsweb\Productos; return $producto; }
+function getCategoria() { global $categoria; if (!$categoria) $categoria = new capsweb\Categorias; return $categoria; }
+function getNoticia() { global $noticia; if (!$noticia) $noticia = new capsweb\noticias; return $noticia; }
+
+// Si acceden por GET sin accion=Eliminar, redirigir al login
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!isset($_GET['accion']) || $_GET['accion'] !== 'Eliminar')) {
+    header('Location: ../acceso.php');
+    exit;
+}
+
+function validarCsrf(): bool {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    $token = $_POST['csrf_token'] ?? '';
+    if (empty($token) || empty($_SESSION['csrf_token'])) return false;
+    return hash_equals($_SESSION['csrf_token'], $token);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+  // Login tiene su propia protección de sesión, no requiere CSRF previo
+  if (isset($_POST['accion']) && $_POST['accion'] === 'Conectar') {
+    // Se procesa abajo en la sección de login
+  } elseif (!validarCsrf()) {
+    http_response_code(403);
+    header('Location: ../acceso.php?error=denegado');
+    exit;
+  }
 
   if ($_POST['accion'] === 'Registrar') {
 
@@ -30,17 +58,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($_POST['stock']))
       exit('digita una cantidad en stock válida');
 
+    try {
+      $fotoSubida = subirFoto();
+    } catch (\RuntimeException $e) {
+      exit($e->getMessage());
+    }
+
     $_params = array(
       'referencia' => $_POST['referencia'],
       'categoria_id' => $_POST['categoria_id'],
-      'foto' => subirFoto(),
+      'foto' => $fotoSubida,
       'precio' => $_POST['precio'],
       'tallas' => $tallasSeleccionadas,
       'stock' => $_POST['stock'],
       'fecha' => date('y-m-d')
     );
 
-    $rpt = $producto->registrar($_params);
+    $rpt = getProducto()->registrar($_params);
 
     if ($rpt)
       header('Location: productos/index.php');
@@ -80,10 +114,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_POST['foto_temp']))
       $_params['foto'] = $_POST['foto_temp'];
 
-    if (!empty($_FILES['foto']['name']))
-      $_params['foto'] = subirFoto();
+    if (!empty($_FILES['foto']['name'])) {
+      try {
+        $_params['foto'] = subirFoto();
+      } catch (\RuntimeException $e) {
+        exit($e->getMessage());
+      }
+    }
 
-    $rpt = $producto->actualizar($_params);
+    $rpt = getProducto()->actualizar($_params);
     if ($rpt)
       header('Location: productos/index.php');
     else
@@ -93,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['accion']) && $_GET['accion'] === 'Eliminar') {
   $id = $_GET['id'];
-  $rpt = $producto->eliminar($id);
+  $rpt = getProducto()->eliminar($id);
   if ($rpt)
     header('Location: productos/index.php');
   else
@@ -112,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'categoria' => $_POST['categoria']
     );
 
-    $rpt = $categoria->registrar($_params);
+    $rpt = getCategoria()->registrar($_params);
 
     if ($rpt)
       header('Location: productos/index.php');
@@ -126,14 +165,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if ($_POST['accion'] === 'Cambiar') {
 
-    if (empty($_POST['campos_adicionales']))
+    if (empty($_POST['lema']))
       exit('Completar la noticia');
 
     $_params = array(
-      'campos_adicionales' => $_POST['campos_adicionales']
+      'lema' => $_POST['lema']
     );
 
-    $rpt = $noticia->actualizarNoticias($_params);
+    $rpt = getNoticia()->actualizarNoticias($_params);
 
     if ($rpt)
       header('Location: productos/index.php');
@@ -145,44 +184,115 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // //SUBIR UNA FOTO
 function subirFoto()
 {
-  $carpeta = __DIR__ . '/../upload/';
-  $archivo = $carpeta . $_FILES['foto']['name'];
-  move_uploaded_file($_FILES['foto']['tmp_name'], $archivo);
-  return $_FILES['foto']['name'];
+  if (!isset($_FILES['foto'])) {
+    throw new RuntimeException('No se recibio ningun archivo.');
+  }
+
+  $nombreOriginal = $_FILES['foto']['name'];
+  $temporal = $_FILES['foto']['tmp_name'];
+  $error = $_FILES['foto']['error'];
+  $tamano = $_FILES['foto']['size'];
+
+  // Compatibilidad con input tipo multiple: foto[]
+  if (is_array($nombreOriginal)) {
+    $nombreOriginal = $nombreOriginal[0] ?? '';
+    $temporal = $temporal[0] ?? '';
+    $error = $error[0] ?? UPLOAD_ERR_NO_FILE;
+    $tamano = $tamano[0] ?? 0;
+  }
+
+  if ($error !== UPLOAD_ERR_OK) {
+    throw new RuntimeException('Error al subir la imagen.');
+  }
+
+  if (!is_uploaded_file($temporal)) {
+    throw new RuntimeException('Archivo no valido.');
+  }
+
+  $maxBytes = 2 * 1024 * 1024; // 2MB
+  if ($tamano <= 0 || $tamano > $maxBytes) {
+    throw new RuntimeException('La imagen supera el tamano permitido (2MB).');
+  }
+
+  $mime = mime_content_type($temporal);
+  $mimesPermitidos = array(
+    'image/jpeg' => 'jpg',
+    'image/png' => 'png',
+    'image/webp' => 'webp'
+  );
+
+  if (!isset($mimesPermitidos[$mime])) {
+    throw new RuntimeException('Formato de imagen no permitido.');
+  }
+
+  $extension = $mimesPermitidos[$mime];
+  $nombreSeguro = bin2hex(random_bytes(16)) . '.' . $extension;
+
+  $carpeta = storage_upload_path();
+  if (!is_dir($carpeta)) {
+    if (!mkdir($carpeta, 0755, true) && !is_dir($carpeta)) {
+      throw new RuntimeException('No se pudo crear la carpeta de subida.');
+    }
+  }
+
+  $destino = $carpeta . $nombreSeguro;
+  if (!move_uploaded_file($temporal, $destino)) {
+    throw new RuntimeException('No se pudo guardar la imagen.');
+  }
+
+  return $nombreSeguro;
 }
 
 //INICIO DE SECCION
-if ($_POST['accion'] === 'Conectar') {
+if (isset($_POST['accion']) && $_POST['accion'] === 'Conectar') {
   session_start();
 
-  if (empty($_POST["btn_ingreso"])) {
+  $usuario = isset($_POST['usuario']) ? trim((string) $_POST['usuario']) : '';
+  $contrasena = isset($_POST['contraseña']) ? (string) $_POST['contraseña'] : '';
 
-    $config = parse_ini_file(__DIR__ . '/../config/config.ini');
-    $cn = new \PDO($config['dns'], $config['usuario'], $config['clave'], array(
-      \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
-    ));
-    if (!empty($_POST["usuario"]) && (!empty($_POST["contraseña"]))) {
-
-      $usuario = $_POST["usuario"];
-      $contraseña = $_POST["contraseña"];
-      $sql = $cn->query("SELECT * from administradores where usuario = '$usuario' and contraseña ='$contraseña' ");
-
-      $_SESSION['logged_in'] = true;
-
-      if ($datos = $sql->fetchObject()) {
-        $_SESSION["id"] = $datos->id;
-        $_SESSION["nombre"] = $datos->nombre;
-        $_SESSION["email"] = $datos->email;
-        $_SESSION["numero"] = $datos->numero;
-
-        header("location: productos/index.php");
-        # code...
-      } else {
-        echo  "ACCESO DENEGADO ";
-        # code...
-      }
-    } else {
-      echo "campos vacios";
-    }
+  if ($usuario === '' || $contrasena === '') {
+    header('Location: ../acceso.php?error=vacio');
+    exit;
   }
+
+  if (strlen($usuario) > 100 || strlen($contrasena) > 255) {
+    header('Location: ../acceso.php?error=denegado');
+    exit;
+  }
+
+  $config = parse_ini_file(config_path('config.ini'));
+  $cn = new \PDO($config['dns'], $config['usuario'], $config['clave'], array(
+    \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+  ));
+
+  $sql = $cn->prepare("SELECT * FROM administradores WHERE usuario = :usuario LIMIT 1");
+  $sql->bindValue(':usuario', $usuario, \PDO::PARAM_STR);
+  $sql->execute();
+  $datos = $sql->fetchObject();
+
+  if ($datos && validarContrasenaAdmin($contrasena, $datos->contraseña)) {
+    session_regenerate_id(true);
+    $_SESSION['logged_in'] = true;
+    $_SESSION["id"] = $datos->id;
+    $_SESSION["nombre"] = $datos->nombre;
+    $_SESSION["email"] = $datos->correo;
+    $_SESSION["numero"] = $datos->telefono;
+
+    header('Location: ' . rtrim(dirname($_SERVER['PHP_SELF']), '/') . '/productos/index.php');
+    exit;
+  }
+
+  header('Location: ../acceso.php?error=denegado');
+  exit;
+}
+
+function validarContrasenaAdmin($contrasenaIngresada, $contrasenaGuardada)
+{
+  $infoHash = password_get_info($contrasenaGuardada);
+  if (!empty($infoHash['algo'])) {
+    return password_verify($contrasenaIngresada, $contrasenaGuardada);
+  }
+
+  // Compatibilidad temporal con contrasenas antiguas en texto plano.
+  return hash_equals((string) $contrasenaGuardada, (string) $contrasenaIngresada);
 }

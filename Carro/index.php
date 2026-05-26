@@ -1,298 +1,220 @@
 <?php
-//ACTIVAR LAS SESSIONES EN PHP
 session_start();
-include('../templates/carroCabecera.php');
-require 'funcionesCarrito.php';
-require '../src/productos.php';
-require '../vendor/autoload.php';
-
+include(__DIR__ . '/../templates/cabecera.php');
+require __DIR__ . '/funcionesCarrito.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
-  $id = $_GET['id'];
-  require '../vendor/autoload.php';
+  $id = (int)$_GET['id'];
   $producto = new capsweb\Productos;
-  $resultado = $producto->mostrarPorId($id); //busca el producto por medio de su id
-  if (!$resultado)
-    header('Location: ../index.php');
+  $resultado = $producto->mostrarPorId($id);
+  if (!$resultado) { header('Location: ../index.php'); exit; }
 
-  if (isset($_SESSION['carrito'])) { //SI EL CARRITO EXISTE
-    //SI PRODUCTO EXISTE EN EL CARRITO
+  $cantidad = isset($_GET['cantidad']) && is_numeric($_GET['cantidad']) ? max(1, (int)$_GET['cantidad']) : 1;
+  $talla = isset($_GET['talla']) ? trim($_GET['talla']) : null;
+
+  if (isset($_SESSION['carrito'])) {
     if (array_key_exists($id, $_SESSION['carrito'])) {
-      actualizarProducto($id);
+      // Si ya existe, sumamos la cantidad solicitada y actualizamos talla
+      $_SESSION['carrito'][$id]['cantidad'] += $cantidad;
+      if ($talla) $_SESSION['carrito'][$id]['talla'] = $talla;
     } else {
-      //  SI EL CARRITO NO EXISTE EN EL CARRITO
-      agregarProducto($resultado, $id);
+      agregarProducto($resultado, $id, $cantidad, $talla);
     }
   } else {
-    //  SI EL CARRITO NO EXISTE
-    agregarProducto($resultado, $id);
+    agregarProducto($resultado, $id, $cantidad, $talla);
   }
 }
+
+$carritoVacio = empty($_SESSION['carrito']);
 ?>
 
-<head>
-  <link rel="stylesheet" href="../assets/css/carrito.css">
-
-  <!-- JavaScript de Bootstrap -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-
-</head>
-<h2 class="text-center text-uppercase pt-5">Carrito de compras</h2>
-<div class="container-car-shopping-content" id="main">
-  <div class="table-header">
-    <div class="botones">
-      <button type="button" class="btn btn-dark">
-        <a href="../index.php">
-          <i class="fa-solid fa-arrow-left"></i>
-          Seguir Comprando
-        </a>
-      </button>
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-brand-900">Tu Carrito</h1>
+      <p class="text-gray-500 text-sm mt-1"><?= $carritoVacio ? 'Tu carrito está vacío' : count($_SESSION['carrito']) . ' producto(s)' ?></p>
     </div>
-    <form method="POST" action="eliminar_carrito.php" enctype="multipart/form-data">
-      <!-- <a href="form_registrar.php" class="btn btn-primary"> -->
-      <button type="submit" class="btn btn-outline-danger btn-xs" name="accion" id="btn_limpiar" value="eliminartodo" style="width: 200px;">
-        Eliminar Carrito
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <!-- <input type="submit" name="accion" class="btn btn-danger" id="btn_limpiar" value="eliminartodo"> -->
-
-    </form>
+    <div class="flex gap-3">
+      <a href="../index.php" class="inline-flex items-center px-4 py-2 border-2 border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:border-brand-accent hover:text-brand-accent transition">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Seguir comprando
+      </a>
+      <?php if (!$carritoVacio) { ?>
+        <button type="button" onclick="openClearModal()" class="inline-flex items-center px-4 py-2 border-2 border-red-200 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50 transition">
+          <i class="fa-solid fa-trash mr-2"></i>Vaciar
+        </button>
+      <?php } ?>
+    </div>
   </div>
-  <table class="table"> <!--- table-bordered table-hover -->
-    <thead>
-      <tr>
-        <th>Foto</th>
-        <th>Referencia</th>
-        <th>Categoria</th>
-        <th>Precio c/u</th>
-        <th>Cantidad</th>
-        <th>Talla</th>
-        <th>subtotal</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php $subTotal = 0;
-      if (isset($_SESSION['carrito']) && !empty($_SESSION['carrito'])) {
-        $c = 0;
 
-        foreach ($_SESSION['carrito'] as $indice => $value) {
+  <?php if (isset($_GET['id']) && is_numeric($_GET['id'])) { ?>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof showToast === 'function') showToast('Producto agregado al carrito', 'success');
+  });
+</script>
+<?php } ?>
 
-          $c++;
+<?php if (!$carritoVacio) { ?>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Items -->
+      <div class="lg:col-span-2 space-y-4">
+        <?php foreach ($_SESSION['carrito'] as $value) {
           $idProducto = $value['id'];
           $producto = new capsweb\Productos;
           $tallasProducto = $producto->mostrarTallas($idProducto);
+          $fotoUrl  = '/upload/' . htmlspecialchars($value['foto'], ENT_QUOTES, 'UTF-8');
+          $fotoPath = 'public/upload/' . htmlspecialchars($value['foto'], ENT_QUOTES, 'UTF-8');
+        ?>
+          <div class="bg-white rounded-xl border border-gray-100 p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:shadow-md transition">
+            <!-- Foto -->
+            <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+              <?php if (file_exists($fotoPath)) { ?>
+                <img src="<?= $fotoUrl ?>" class="w-full h-full object-cover" alt="">
+              <?php } else { ?>
+                <img src="../assets/images/sinfoto.jpg" class="w-full h-full object-cover" alt="">
+              <?php } ?>
+            </div>
 
-          // calcula el precio de las prendas por sus cantidades
-          if ($value['cantidad'] == 5  && $value['categoria'] == 'CAMISETA') {
-            $parcial = $value['precio'] = 22000;
-            $subTotal +=  $parcial * $value['cantidad'];
-          }
-          if ($value['cantidad'] == 4  && $value['categoria'] == 'CAMISETA') {
-            $parcial = $value['precio'] = 23750;
-            $subTotal +=  $parcial * $value['cantidad'];
-          }
-          if ($value['cantidad'] == 3  && $value['categoria'] == 'CAMISETA') {
-            $parcial = $value['precio'] = 25000;
-            $subTotal += $parcial * $value['cantidad'];
-          }
-          if ($value['cantidad'] == 2 && $value['categoria'] == 'CAMISETA') {
-            $parcial = $value['precio'] = 27500;
-            $subTotal += $parcial * $value['cantidad'];
-          }
-          if ($value['cantidad'] >= 5 || $value['cantidad'] <= 1) {
-            $subTotal =  $value['precio'] * $value['cantidad'];
-          } else {
-            $subTotal =  $value['precio'] * $value['cantidad'];
-          }
-      ?>
-          <tr>
-            <form id="form1" action="actualizar_carrito.php" method="post">
-              <td data-label="Foto">
-                <?php
-                $foto = '../upload/' . $value['foto'];
-                if (file_exists($foto)) {
-                ?>
-                  <img src="<?php print $foto; ?>" width="35">
-                <?php } else { ?>
-                  <img src="../assets/images/sinfoto.jpg" width="35">
-                <?php } ?>
-              </td>
-              <td data-label="Referencia">
-                <?php print $value['referencia'] ?>
-              </td>
-              <td data-label="Categoria">
-                <?php print $value['categoria'] ?>
-              </td>
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-brand-900 truncate"><?= htmlspecialchars($value['referencia'], ENT_QUOTES, 'UTF-8') ?></h3>
+              <p class="text-xs text-gray-500 uppercase"><?= htmlspecialchars($value['categoria'], ENT_QUOTES, 'UTF-8') ?></p>
+              <p class="text-brand-accent font-black mt-1">$<?= number_format($value['precio'], 0, ',', '.') ?> <span class="text-gray-400 text-xs font-normal">COP</span></p>
+            </div>
 
-              <td data-label="Precio">
-                $<?php print  number_format($value['precio'], 2, ",", ".") ?> COP
-              </td>
-              <td data-label="Cantidad" class="d-flex justify-content-between ">
-                <input type="hidden" name="id" value="<?php print $value['id'] ?>">
-                <input type="number" name="cantidad" class="form-control u-size-100" value="<?php print $value['cantidad'] ?>">
-              </td>
+            <!-- Form actualizar -->
+            <form action="actualizar_carrito.php" method="post" class="flex flex-wrap items-center gap-3">
+              <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
+              <input type="hidden" name="id" value="<?= (int)$value['id'] ?>">
 
-              <td data-label="Talla">
-                <select name="tallaTomada">
-                  <?php
-                  echo '<option disabled selected>Seleccione</option>'; // Opción inicial no seleccionable
+              <!-- Cantidad -->
+              <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                <input type="number" name="cantidad" value="<?= (int)$value['cantidad'] ?>" min="1" class="w-14 py-2 text-center text-sm font-bold outline-none border-none">
+              </div>
 
-                  foreach ($tallasProducto as $talla) {
-                    $selected = ($talla == $value['talla']) ? 'selected' : '';
-                    echo '<option value="' . $talla . '" ' . $selected . '>' . $talla . '</option>';
-                  }
-                  ?>
-                </select>
-              </td>
+              <!-- Talla -->
+              <select name="tallaTomada" class="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-accent">
+                <?php foreach ($tallasProducto as $talla) {
+                  $tallaEsc = htmlspecialchars($talla, ENT_QUOTES, 'UTF-8');
+                  $selected = ($talla == $value['talla']) ? 'selected' : '';
+                  echo '<option value="' . $tallaEsc . '" ' . $selected . '>' . $tallaEsc . '</option>';
+                } ?>
+              </select>
 
-              <td data-label="Valor">
-                $<?php echo number_format($subTotal, 2, ",", ".") ?> COP
-              </td>
-              <td data-label="Acciones">
-                <button type="submit" class="btn btn-dark">
-                  <i class="fa-solid fa-rotate-right"></i>
-                </button>
-                <a href="eliminar_carrito.php?id=<?php print $value['id'] ?>" class="btn btn-outline-danger btn-xs">
-                  <i class="fa-solid fa-trash"></i>
-                </a>
-              </td>
+              <button type="submit" class="w-9 h-9 rounded-lg bg-brand-900 text-white flex items-center justify-center hover:bg-brand-accent transition" title="Actualizar">
+                <i class="fa-solid fa-rotate-right text-xs"></i>
+              </button>
             </form>
-          </tr>
-        <?php
-        }
-      } else { ?>
-        <tr>
-          <td colspan="8">NO HAY PRODUCTOS EN EL CARRITO</td>
-        </tr>
-      <?php } ?>
-    </tbody>
-    <tfoot>
-      <tr>
-        <td colspan="6" class="text-right">Total</td>
-        <td>
-          $<?php print number_format(calcularTotal(), 2, ",", "."); ?> COP
-        </td>
-        <td></td>
-      </tr>
-    </tfoot>
-  </table>
 
-  <?php
-  if (isset($_SESSION['carrito']) && !empty($_SESSION['carrito'])) {
-  ?>
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#formDataModal">
-      Finalizar Compra <i class="fa-solid fa-dollar-sign"></i>
-    </button>
-</div>
-<?php } ?>
-</div>
-
-<!-- MODAL FORM DATA -->
-<div class="modal fade" id="formDataModal" tabindex="-1" aria-labelledby="formDataModalLabel" aria-hidden="true" style="padding-top: 100px;">
-  <div class="modal-dialog">
-    <div class="modal-content">
-
-      <!-- MODAL HEADER -->
-      <div class="modal-header">
-        <h5 class="modal-title" id="formDataModalLabel">Confirmar Compra</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <!-- MODAL BODY -->
-      <div class="modal-body">
-        <div class="container-register-products d-flex justify-content-center align-items-center">
-          <div class="row ">
-            <div class="col-md-12">
-              <form action="../completar_pedido.php" method="post" onsubmit="gracias(event)">
-
-                <!-- SECTION MODAL -->
-                <div class="row pt-2">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label>Nombre</label>
-                      <input type="text" class="form-control" name="nombre" required>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label>Apellidos</label>
-                      <input type="text" class="form-control" name="apellidos" required>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="row pt-2">
-                  <div class="col-md-12">
-                    <div class="form-group">
-                      <label>Correo</label>
-                      <input type="email" class="form-control" name="email" required>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="row pt-2">
-                  <div class="col-md-12">
-                    <div class="form-group">
-                      <label>Teléfono</label>
-                      <input type="text" class="form-control" name="telefono" required>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="row pt-2">
-                  <div class="col-md-12">
-                    <div class="form-group">
-                      <label>Direccion</label>
-                      <textarea name="direccion" placeholder="Ingrese su dirreción (Sea muy especifico)" class="form-control" rows="1"></textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <script>
-                  function gracias(event) {
-                    event.preventDefault();
-
-                    swal({
-                      title: "¿Desea confirmar su compra?",
-                      text: "",
-                      icon: "success",
-                      buttons: true,
-                      dangerMode: true,
-                    }).then((will) => {
-                      if (will) {
-                        swal("Gracias por su compra", {
-                          icon: "success",
-                        });
-                        setTimeout(() => {
-                          document.getElementById("confirmacion").value = "confirmado";
-                          event.target.submit();
-                        }, 1500);
-                      } else {
-                        swal("La compra no fue realizada");
-                        setTimeout(() => {
-                          location.href = 'index.php';
-                        }, 1500);
-                      }
-                    });
-                  }
-                </script>
-
-                <!-- FOOTER MODAL -->
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary btn-block">Enviar</button>
-                  <input type="hidden" name="confirmacion" id="confirmacion" value="">
-                </div>
-              </form>
+            <!-- Subtotal + Eliminar -->
+            <div class="text-right flex flex-col items-end gap-2">
+              <span class="font-black text-brand-900">$<?= number_format($value['precio'] * $value['cantidad'], 0, ',', '.') ?></span>
+              <button type="button" onclick="openDeleteModal(<?= (int)$value['id'] ?>)" class="text-red-500 hover:text-red-700 text-xs transition">
+                <i class="fa-solid fa-trash mr-1"></i>Eliminar
+              </button>
             </div>
           </div>
+        <?php } ?>
+      </div>
+
+      <!-- Resumen -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl border border-gray-100 p-6 sticky top-24">
+          <h2 class="font-bold text-lg text-brand-900 mb-4">Resumen del pedido</h2>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span>$<?= number_format(calcularTotal(), 0, ',', '.') ?> COP</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Envío</span>
+              <span class="text-green-600 font-medium">Gratis</span>
+            </div>
+          </div>
+          <div class="border-t border-gray-100 my-4"></div>
+          <div class="flex justify-between items-center mb-6">
+            <span class="font-bold text-brand-900">Total</span>
+            <span class="text-2xl font-black text-brand-accent">$<?= number_format(calcularTotal(), 0, ',', '.') ?> <span class="text-sm text-gray-400 font-normal">COP</span></span>
+          </div>
+
+          <a href="../finalizar.php" class="block w-full bg-brand-accent text-white text-center py-3 rounded-xl font-bold hover:bg-rose-700 transition shadow-lg shadow-rose-900/20">
+            <i class="fa-solid fa-credit-card mr-2"></i>Finalizar compra
+          </a>
+          <p class="text-center text-xs text-gray-400 mt-3"><i class="fa-solid fa-lock mr-1"></i>Pago seguro contra entrega</p>
         </div>
+      </div>
+    </div>
+
+  <?php } else { ?>
+    <!-- Carrito vacío -->
+    <div class="text-center py-20">
+      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fa-solid fa-cart-shopping text-4xl text-gray-300"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-brand-900 mb-2">Tu carrito está vacío</h2>
+      <p class="text-gray-500 mb-6">Explora nuestra colección y encuentra algo que te encante.</p>
+      <a href="../index.php#productos" class="inline-block bg-brand-accent text-white px-8 py-3 rounded-xl font-bold hover:bg-rose-700 transition">
+        <i class="fa-solid fa-bag-shopping mr-2"></i>Ver productos
+      </a>
+    </div>
+  <?php } ?>
+</section>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden" onclick="if(event.target===this)closeDeleteModal()">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+      <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-trash text-xl"></i>
+      </div>
+      <h3 class="text-lg font-black text-brand-900 mb-2">¿Eliminar este producto?</h3>
+      <p class="text-gray-500 text-sm mb-6">Esta acción no se puede deshacer.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="closeDeleteModal()" class="px-5 py-2.5 rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition">Cancelar</button>
+        <a id="confirm-delete-btn" href="#" class="px-5 py-2.5 rounded-lg bg-red-500 text-white font-bold hover:bg-red-600 transition">Eliminar</a>
       </div>
     </div>
   </div>
 </div>
 
-<script src="assets/js/jquery.min.js"></script>
-<script src="js/push.min.js"></script>
+<!-- Clear Cart Modal -->
+<div id="clearModal" class="fixed inset-0 z-50 hidden" onclick="if(event.target===this)closeClearModal()">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+      <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-trash-can text-xl"></i>
+      </div>
+      <h3 class="text-lg font-black text-brand-900 mb-2">¿Vaciar todo el carrito?</h3>
+      <p class="text-gray-500 text-sm mb-6">Se eliminarán todos los productos. Esta acción no se puede deshacer.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="closeClearModal()" class="px-5 py-2.5 rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition">Cancelar</button>
+        <form method="POST" action="eliminar_carrito.php" class="inline">
+          <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
+          <button type="submit" name="accion" value="eliminartodo" class="px-5 py-2.5 rounded-lg bg-red-500 text-white font-bold hover:bg-red-600 transition">Vaciar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openDeleteModal(id) {
+  document.getElementById('confirm-delete-btn').href = 'eliminar_carrito.php?id=' + id;
+  document.getElementById('deleteModal').classList.remove('hidden');
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.add('hidden');
+}
+function openClearModal() {
+  document.getElementById('clearModal').classList.remove('hidden');
+}
+function closeClearModal() {
+  document.getElementById('clearModal').classList.add('hidden');
+}
+</script>
+
+<?php include(__DIR__ . '/../templates/footer.php'); ?>

@@ -1,30 +1,35 @@
 <?php
 session_start();
+require_once __DIR__ . '/../vendor/autoload.php';
 
-if (!isset($_GET['id']) or !is_numeric($_GET['id']))
+use capsweb\Helpers\Csrf;
+
+// Si viene POST para vaciar todo el carrito, procesar primero
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'eliminartodo') {
+    if (!isset($_POST['csrf_token']) || !Csrf::validate($_POST['csrf_token'])) {
+        header('Location: index.php');
+        exit;
+    }
+    if (isset($_SESSION['carrito'])) {
+        $_SESSION['carrito'] = array();
+    }
     header('Location: index.php');
+    exit;
+}
 
-$id = $_GET['id'];
+// Eliminación individual por GET
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    header('Location: index.php');
+    exit;
+}
 
-if (isset($_SESSION['carrito'])) {
+$id = (int) $_GET['id'];
+
+if (isset($_SESSION['carrito']) && array_key_exists($id, $_SESSION['carrito'])) {
     unset($_SESSION['carrito'][$id]);
     header('Location: index.php');
-} else {
-    header('Location: ../index.php');
+    exit;
 }
 
-//Esto elminara todos los productos al destruir la seccion del carrito creada con el id de un producto
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    if ($_POST['accion'] === 'eliminartodo') {
-     
-        // Verificar si el usuario ha iniciado sesión
-        if (isset($_SESSION['carrito'])) {
-            // Eliminar todas las variables de sesión
-            session_unset();
-            // Destruir la sesión
-            session_destroy();
-        }
-        header('location: index.php');
-    }
-}
+header('Location: ../index.php');
+exit;

@@ -1,0 +1,30 @@
+.env
+.env.local
+.env.*.local
+vendor/
+node_modules/
+
+# Runtime and logs
+*.log
+*.tmp
+*.cache
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+
+# Uploads de imagenes (generados por seeder o usuarios)
+public/upload/*.jpg
+public/upload/*.jpeg
+public/upload/*.png
+public/upload/*.gif
+public/upload/*.webp
+
+# PHPUnit cache
+.phpunit.cache/
+.phpunit.result.cache
+
+# Base de datos local (si se genera)
+*.sqlite
+*.db
