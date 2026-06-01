@@ -40,4 +40,14 @@ class clientes
 
         return false;
     }
+
+    public function mostrarPorId(int $id): ?array
+    {
+        $sql = "SELECT * FROM `clientes` WHERE `id` = :id LIMIT 1";
+        $resultado = $this->cn->prepare($sql);
+        $resultado->bindParam(':id', $id, PDO::PARAM_INT);
+        $resultado->execute();
+        $data = $resultado->fetch(PDO::FETCH_ASSOC);
+        return $data ?: null;
+    }
 }

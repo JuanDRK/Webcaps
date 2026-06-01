@@ -37,10 +37,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('No se pudo registrar el cliente.');
         }
 
+        // Calcular total con descuento si hay cupón
+        $subtotal = calcularTotal();
+        $descuento = 0;
+        $cuponId = null;
+        
+        if (!empty($_POST['cupon'])) {
+            $cupones = new capsweb\Cupones();
+            $cupon = $cupones->validar($_POST['cupon'], $subtotal);
+            if ($cupon) {
+                $descuento = $cupones->calcularDescuento($cupon, $subtotal);
+                $cuponId = $cupon['id'];
+                $cupones->usarCupon($cupon['id']);
+            }
+        }
+        
+        $totalFinal = $subtotal - $descuento;
+        
         $pedidoParams = array(
             'cliente_id' => $cliente_id,
-            'total' => calcularTotal(),
-            'fecha' => date('Y-m-d')
+            'total' => $totalFinal,
+            'fecha' => date('Y-m-d'),
+            'descuento' => $descuento,
+            'cupon_id' => $cuponId
         );
 
         $pedido_id = $pedido->registrar($pedidoParams);
@@ -65,6 +84,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Enviar notificaciones
+        $notif = new capsweb\Services\Notificaciones();
+        $infoPedido = $pedido->mostrarPorId($pedido_id);
+        $itemsPedido = $pedido->mostrarDetallePorIdPedido($pedido_id);
+        $infoCliente = $cliente->mostrarPorId($cliente_id);
+        
+        $notif->notificarNuevoPedido(
+            ['id' => $pedido_id, 'total' => $pedidoParams['total']],
+            $infoCliente,
+            $itemsPedido
+        );
+        $notif->notificarClientePedido(
+            ['id' => $pedido_id, 'total' => $pedidoParams['total']],
+            $infoCliente
+        );
+
+        // Mantener compatibilidad con EmailService existente
         sendEmailPedido($pedido_id);
 
         $_SESSION['carrito'] = [];

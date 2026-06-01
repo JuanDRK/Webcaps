@@ -20,6 +20,10 @@
       <i class="fa-solid fa-industry w-5 text-center"></i>
       <span class="font-medium">Fábrica</span>
     </a>
+    <a href="/panel/cupones/index.php" class="<?= ($activePage ?? '') === 'cupones' ? 'bg-brand-accent text-white' : 'text-white/70 hover:text-white hover:bg-white/10' ?> flex items-center gap-3 px-4 py-3 rounded-lg transition">
+      <i class="fa-solid fa-ticket w-5 text-center"></i>
+      <span class="font-medium">Cupones</span>
+    </a>
   </nav>
 
   <div class="px-4 pb-2">

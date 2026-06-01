@@ -14,6 +14,25 @@ $fotoPath = 'public/upload/' . $prendaEscogida['foto'];
 $fotoUrl  = 'upload/' . $prendaEscogida['foto'];
 $fotoExiste = file_exists($fotoPath);
 
+// Fotos adicionales
+$fotosAdicionales = [];
+try {
+  $fotosModel = new capsweb\ProductoFotos();
+  $fotosAdicionales = $fotosModel->obtenerPorProducto($id);
+} catch (Exception $e) {
+  // Tabla puede no existir aún
+}
+$todasLasFotos = [];
+if ($fotoExiste) {
+  $todasLasFotos[] = ['foto' => $prendaEscogida['foto'], 'principal' => true];
+}
+foreach ($fotosAdicionales as $fa) {
+  if (file_exists('public/upload/' . $fa['foto'])) {
+    $todasLasFotos[] = ['foto' => $fa['foto'], 'principal' => false];
+  }
+}
+$totalFotos = count($todasLasFotos);
+
 // Productos relacionados (misma categoria, excluyendo el actual)
 $todos = $producto->mostrar();
 $relacionados = array_filter($todos, fn($p) => $p['categoria_id'] == $prendaEscogida['categoria_id'] && $p['id'] != $id);
@@ -32,15 +51,52 @@ $relacionados = array_slice($relacionados, 0, 4);
 <!-- PRODUCT DETAIL -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-    <!-- IMAGE -->
+    <!-- IMAGE GALLERY -->
     <div class="relative">
-      <div class="bg-gray-100 rounded-2xl overflow-hidden aspect-[3/4]">
-        <?php if ($fotoExiste) { ?>
-          <img src="<?= $fotoUrl ?>" class="w-full h-full object-cover" alt="<?= htmlspecialchars($prendaEscogida['referencia'], ENT_QUOTES, 'UTF-8') ?>">
-        <?php } else { ?>
-          <img src="assets/images/sinfoto.jpg" class="w-full h-full object-cover" alt="sin foto">
-        <?php } ?>
-      </div>
+      <?php if ($totalFotos > 1) { ?>
+        <!-- Carrusel -->
+        <div id="gallery" class="relative bg-gray-100 rounded-2xl overflow-hidden aspect-[3/4]">
+          <?php foreach ($todasLasFotos as $idx => $f) { ?>
+            <img src="upload/<?= htmlspecialchars($f['foto']) ?>" 
+                 class="gallery-slide absolute inset-0 w-full h-full object-cover transition-opacity duration-300 <?= $idx === 0 ? 'opacity-100' : 'opacity-0' ?>" 
+                 data-index="<?= $idx ?>"
+                 alt="<?= htmlspecialchars($prendaEscogida['referencia']) ?>">
+          <?php } ?>
+          
+          <!-- Controles -->
+          <button onclick="prevSlide()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition">
+            <i class="fa-solid fa-chevron-left text-gray-700"></i>
+          </button>
+          <button onclick="nextSlide()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition">
+            <i class="fa-solid fa-chevron-right text-gray-700"></i>
+          </button>
+          
+          <!-- Indicadores -->
+          <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            <?php for ($i = 0; $i < $totalFotos; $i++) { ?>
+              <button onclick="goToSlide(<?= $i ?>)" class="gallery-dot w-2 h-2 rounded-full transition <?= $i === 0 ? 'bg-brand-accent' : 'bg-white/70' ?>" data-index="<?= $i ?>"></button>
+            <?php } ?>
+          </div>
+        </div>
+        
+        <!-- Thumbnails -->
+        <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
+          <?php foreach ($todasLasFotos as $idx => $f) { ?>
+            <button onclick="goToSlide(<?= $idx ?>)" class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition gallery-thumb <?= $idx === 0 ? 'border-brand-accent' : 'border-transparent' ?>" data-index="<?= $idx ?>">
+              <img src="upload/<?= htmlspecialchars($f['foto']) ?>" class="w-full h-full object-cover">
+            </button>
+          <?php } ?>
+        </div>
+      <?php } else { ?>
+        <!-- Imagen única -->
+        <div class="bg-gray-100 rounded-2xl overflow-hidden aspect-[3/4]">
+          <?php if ($fotoExiste) { ?>
+            <img src="<?= $fotoUrl ?>" class="w-full h-full object-cover" alt="<?= htmlspecialchars($prendaEscogida['referencia'], ENT_QUOTES, 'UTF-8') ?>">
+          <?php } else { ?>
+            <img src="assets/images/sinfoto.jpg" class="w-full h-full object-cover" alt="sin foto">
+          <?php } ?>
+        </div>
+      <?php } ?>
     </div>
 
     <!-- INFO -->
@@ -127,6 +183,66 @@ $relacionados = array_slice($relacionados, 0, 4);
 <?php } ?>
 
 <script>
+// Gallery carousel
+let currentSlide = 0;
+const totalSlides = <?= $totalFotos ?>;
+
+function showSlide(index) {
+  if (totalSlides <= 1) return;
+  
+  // Ajustar índice
+  if (index < 0) index = totalSlides - 1;
+  if (index >= totalSlides) index = 0;
+  currentSlide = index;
+  
+  // Actualizar slides
+  document.querySelectorAll('.gallery-slide').forEach((slide, i) => {
+    slide.classList.toggle('opacity-100', i === currentSlide);
+    slide.classList.toggle('opacity-0', i !== currentSlide);
+  });
+  
+  // Actualizar dots
+  document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
+    dot.classList.toggle('bg-brand-accent', i === currentSlide);
+    dot.classList.toggle('bg-white/70', i !== currentSlide);
+  });
+  
+  // Actualizar thumbnails
+  document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
+    thumb.classList.toggle('border-brand-accent', i === currentSlide);
+    thumb.classList.toggle('border-transparent', i !== currentSlide);
+  });
+}
+
+function nextSlide() {
+  showSlide(currentSlide + 1);
+}
+
+function prevSlide() {
+  showSlide(currentSlide - 1);
+}
+
+function goToSlide(index) {
+  showSlide(index);
+}
+
+// Swipe support
+let touchStartX = 0;
+let touchEndX = 0;
+const gallery = document.getElementById('gallery');
+
+if (gallery) {
+  gallery.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, {passive: true});
+  
+  gallery.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchStartX - touchEndX > 50) nextSlide();
+    if (touchEndX - touchStartX > 50) prevSlide();
+  }, {passive: true});
+}
+
 function stepQty(delta) {
   const input = document.getElementById('qty-input');
   let v = parseInt(input.value) + delta;

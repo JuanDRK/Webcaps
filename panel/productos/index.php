@@ -23,6 +23,11 @@ ksort($ventasPorMes);
 $ventasLabels = array_keys(array_slice($ventasPorMes, -6, 6, true));
 $ventasValues = array_values(array_slice($ventasPorMes, -6, 6, true));
 
+// Top productos vendidos
+$topProductos = array_filter($info_producto, fn($p) => ($p['cantidad_vendida'] ?? 0) > 0);
+usort($topProductos, fn($a, $b) => ($b['cantidad_vendida'] ?? 0) <=> ($a['cantidad_vendida'] ?? 0));
+$topProductos = array_slice($topProductos, 0, 5);
+
 $referencia = $_GET['referencia'] ?? '';
 $categoria  = $_GET['categoria'] ?? '';
 $precio     = $_GET['precio'] ?? '';
@@ -91,9 +96,39 @@ $_SESSION['csrf_token'] = $csrfToken;
     </div>
   </div>
 
-  <div class="bg-white rounded-xl border border-gray-100 p-6">
-    <h3 class="font-bold text-brand-900 mb-4">Ventas por mes</h3>
-    <canvas id="ventasChart" height="80"></canvas>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl border border-gray-100 p-6">
+      <h3 class="font-bold text-brand-900 mb-4">Ventas por mes</h3>
+      <canvas id="ventasChart" height="100"></canvas>
+    </div>
+    
+    <div class="bg-white rounded-xl border border-gray-100 p-6">
+      <h3 class="font-bold text-brand-900 mb-4">Top Productos Vendidos</h3>
+      <?php if (count($topProductos) > 0) { ?>
+        <div class="space-y-3">
+          <?php foreach ($topProductos as $idx => $tp) { ?>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div class="w-8 h-8 rounded-full bg-brand-900 text-white flex items-center justify-center font-bold text-sm"><?= $idx + 1 ?></div>
+              <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                <?php $fotoPath = __DIR__ . '/../../public/upload/' . $tp['foto']; if (file_exists($fotoPath)) { ?>
+                  <img src="../../upload/<?= htmlspecialchars($tp['foto']) ?>" class="w-full h-full object-cover">
+                <?php } else { ?><div class="w-full h-full flex items-center justify-center text-gray-400 text-[9px]">SIN FOTO</div><?php } ?>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-brand-900 text-sm truncate"><?= htmlspecialchars($tp['referencia']) ?></p>
+                <p class="text-xs text-gray-500"><?= htmlspecialchars($tp['categoria']) ?></p>
+              </div>
+              <div class="text-right">
+                <p class="font-bold text-brand-accent text-sm"><?= (int)$tp['cantidad_vendida'] ?> vendidos</p>
+                <p class="text-[10px] text-gray-400">$<?= number_format(($tp['cantidad_vendida'] ?? 0) * ($tp['precio'] ?? 0), 0, ',', '.') ?> total</p>
+              </div>
+            </div>
+          <?php } ?>
+        </div>
+      <?php } else { ?>
+        <p class="text-gray-500 text-sm text-center py-8">Aún no hay ventas registradas</p>
+      <?php } ?>
+    </div>
   </div>
 </div>
 

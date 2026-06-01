@@ -7,6 +7,26 @@ $info_pedido = $pedido->mostrar();
 
 $estadosDisponibles = ['Pendiente','Enviado','Completado','Cancelado'];
 $estadoFiltro = $_GET['estado'] ?? '';
+$vista = $_GET['vista'] ?? 'lista'; // lista | calendario
+
+// Calendario data
+$mes = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date('m');
+$anio = isset($_GET['anio']) ? (int)$_GET['anio'] : (int)date('Y');
+$primerDiaMes = mktime(0, 0, 0, $mes, 1, $anio);
+$diasEnMes = date('t', $primerDiaMes);
+$diaSemanaInicio = date('w', $primerDiaMes); // 0=domingo
+$meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// Agrupar pedidos por día para el calendario
+$pedidosPorDia = [];
+foreach ($info_pedido as $p) {
+  $dia = (int)date('d', strtotime($p['fecha'] ?? 'now'));
+  $mesPedido = (int)date('m', strtotime($p['fecha'] ?? 'now'));
+  $anioPedido = (int)date('Y', strtotime($p['fecha'] ?? 'now'));
+  if ($mesPedido === $mes && $anioPedido === $anio) {
+    $pedidosPorDia[$dia][] = $p;
+  }
+}
 
 // Filtros
 $cliente = $_GET['cliente'] ?? '';
@@ -65,11 +85,21 @@ function estadoBadge(string $estado): string {
     </div>
   </div>
 
+  <!-- Vista Tabs -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex gap-2">
+      <a href="?vista=lista" class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition <?= $vista === 'lista' ? 'bg-brand-900 text-white border-brand-900' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-accent hover:text-brand-accent' ?>"><i class="fa-solid fa-list mr-1"></i>Lista</a>
+      <a href="?vista=calendario" class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition <?= $vista === 'calendario' ? 'bg-brand-900 text-white border-brand-900' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-accent hover:text-brand-accent' ?>"><i class="fa-regular fa-calendar mr-1"></i>Calendario</a>
+      <a href="exportar.php" class="px-3 py-1.5 rounded-lg text-sm font-semibold border bg-green-600 text-white border-green-600 hover:bg-green-700 transition"><i class="fa-solid fa-file-excel mr-1"></i>Exportar</a>
+    </div>
+  </div>
+
+  <?php if ($vista === 'lista') { ?>
   <!-- Estado Tabs -->
   <div class="flex flex-wrap gap-2 mb-4">
-    <a href="index.php" class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition <?= empty($estadoFiltro) ? 'bg-brand-900 text-white border-brand-900' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-accent hover:text-brand-accent' ?>">Todos</a>
+    <a href="?vista=lista" class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition <?= empty($estadoFiltro) ? 'bg-brand-900 text-white border-brand-900' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-accent hover:text-brand-accent' ?>">Todos</a>
     <?php foreach ($estadosDisponibles as $e) { ?>
-      <a href="?estado=<?= urlencode($e) ?>" class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition <?= $estadoFiltro === $e ? 'bg-brand-900 text-white border-brand-900' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-accent hover:text-brand-accent' ?>"><?= $e ?></a>
+      <a href="?vista=lista&estado=<?= urlencode($e) ?>" class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition <?= $estadoFiltro === $e ? 'bg-brand-900 text-white border-brand-900' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-accent hover:text-brand-accent' ?>"><?= $e ?></a>
     <?php } ?>
   </div>
 
@@ -134,6 +164,76 @@ function estadoBadge(string $estado): string {
       <p class="text-gray-500 text-sm">No se encontraron pedidos con los filtros seleccionados.</p>
     </div>
   <?php } ?>
+  <?php } // end lista ?>
+
+  <?php if ($vista === 'calendario') { ?>
+  <!-- Calendario -->
+  <div class="bg-white rounded-xl border border-gray-100 p-6">
+    <!-- Header calendario -->
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-brand-900"><?= $meses[$mes-1] ?> <?= $anio ?></h2>
+      <div class="flex gap-2">
+        <?php
+        $prevMes = $mes === 1 ? 12 : $mes - 1;
+        $prevAnio = $mes === 1 ? $anio - 1 : $anio;
+        $nextMes = $mes === 12 ? 1 : $mes + 1;
+        $nextAnio = $mes === 12 ? $anio + 1 : $anio;
+        ?>
+        <a href="?vista=calendario&mes=<?= $prevMes ?>&anio=<?= $prevAnio ?>" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-brand-accent hover:text-brand-accent transition"><i class="fa-solid fa-chevron-left"></i></a>
+        <a href="?vista=calendario&mes=<?= date('m') ?>&anio=<?= date('Y') ?>" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-brand-accent hover:text-brand-accent transition text-sm">Hoy</a>
+        <a href="?vista=calendario&mes=<?= $nextMes ?>&anio=<?= $nextAnio ?>" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-brand-accent hover:text-brand-accent transition"><i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+    </div>
+
+    <!-- Grid calendario -->
+    <div class="grid grid-cols-7 gap-1 mb-2">
+      <?php $diasSemana = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; ?>
+      <?php foreach ($diasSemana as $dia) { ?>
+        <div class="text-center text-xs font-bold text-gray-400 py-2"><?= $dia ?></div>
+      <?php } ?>
+    </div>
+    <div class="grid grid-cols-7 gap-1">
+      <?php
+      // Espacios vacíos antes del primer día
+      for ($i = 0; $i < $diaSemanaInicio; $i++) {
+        echo '<div class="min-h-[80px]"></div>';
+      }
+      // Días del mes
+      $hoy = (int)date('d');
+      $mesActual = (int)date('m');
+      $anioActual = (int)date('Y');
+      for ($dia = 1; $dia <= $diasEnMes; $dia++) {
+        $esHoy = ($dia === $hoy && $mes === $mesActual && $anio === $anioActual);
+        $pedidosDia = $pedidosPorDia[$dia] ?? [];
+        $totalDia = count($pedidosDia);
+        $ventasDia = array_sum(array_column($pedidosDia, 'total'));
+      ?>
+        <div class="min-h-[80px] border border-gray-100 rounded-lg p-2 <?= $esHoy ? 'bg-brand-50 border-brand-200' : 'hover:bg-gray-50' ?>">
+          <div class="flex justify-between items-start mb-1">
+            <span class="text-sm font-bold <?= $esHoy ? 'text-brand-accent' : 'text-gray-700' ?>"><?= $dia ?></span>
+            <?php if ($totalDia > 0) { ?>
+              <span class="text-[10px] bg-brand-accent text-white px-1.5 py-0.5 rounded font-bold"><?= $totalDia ?></span>
+            <?php } ?>
+          </div>
+          <?php if ($totalDia > 0) { ?>
+            <div class="text-[10px] text-gray-500 truncate">$<?= number_format($ventasDia, 0, ',', '.') ?></div>
+            <div class="mt-1 space-y-0.5">
+              <?php foreach (array_slice($pedidosDia, 0, 2) as $p) { ?>
+                <a href="ver.php?id=<?= (int)$p['id'] ?>" class="block text-[9px] truncate text-gray-600 hover:text-brand-accent" title="#<?= $p['id'] ?> - <?= htmlspecialchars(($p['nombre'] ?? '') . ' ' . ($p['apellidos'] ?? '')) ?>">
+                  #<?= $p['id'] ?> <?= htmlspecialchars($p['nombre'] ?? '') ?>
+                </a>
+              <?php } ?>
+              <?php if ($totalDia > 2) { ?>
+                <div class="text-[9px] text-gray-400">+<?= $totalDia - 2 ?> más</div>
+              <?php } ?>
+            </div>
+          <?php } ?>
+        </div>
+      <?php } ?>
+    </div>
+  </div>
+  <?php } // end calendario ?>
+
 </main>
 </div>
 </body>
