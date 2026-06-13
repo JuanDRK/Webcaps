@@ -1,21 +1,29 @@
 <?php
 session_start();
-include(__DIR__ . '/../templates/cabecera.php');
 require __DIR__ . '/funcionesCarrito.php';
 require __DIR__ . '/../vendor/autoload.php';
 
+// Procesar agregado al carrito (AJAX o normal)
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
   $id = (int)$_GET['id'];
   $producto = new capsweb\Productos;
   $resultado = $producto->mostrarPorId($id);
-  if (!$resultado) { header('Location: ../index.php'); exit; }
+  
+  if (!$resultado) { 
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+      http_response_code(404);
+      echo json_encode(['error' => 'Producto no encontrado']);
+      exit;
+    }
+    header('Location: ../index.php'); 
+    exit; 
+  }
 
   $cantidad = isset($_GET['cantidad']) && is_numeric($_GET['cantidad']) ? max(1, (int)$_GET['cantidad']) : 1;
   $talla = isset($_GET['talla']) ? trim($_GET['talla']) : null;
 
   if (isset($_SESSION['carrito'])) {
     if (array_key_exists($id, $_SESSION['carrito'])) {
-      // Si ya existe, sumamos la cantidad solicitada y actualizamos talla
       $_SESSION['carrito'][$id]['cantidad'] += $cantidad;
       if ($talla) $_SESSION['carrito'][$id]['talla'] = $talla;
     } else {
@@ -24,7 +32,16 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
   } else {
     agregarProducto($resultado, $id, $cantidad, $talla);
   }
+  
+  // Si es petición AJAX, devolver JSON y salir
+  if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+    echo json_encode(['success' => true, 'cartCount' => count($_SESSION['carrito'])]);
+    exit;
+  }
 }
+
+// Solo incluir cabecera si NO es petición AJAX de agregar al carrito
+include(__DIR__ . '/../templates/cabecera.php');
 
 $carritoVacio = empty($_SESSION['carrito']);
 ?>

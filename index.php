@@ -288,7 +288,10 @@ document.querySelectorAll('[data-add-cart]').forEach(btn => {
     e.stopPropagation();
     const id = btn.dataset.addCart;
     try {
-      await fetch('/carro/index.php?id=' + encodeURIComponent(id));
+      const response = await fetch('/carro/index.php?id=' + encodeURIComponent(id), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (!response.ok) throw new Error('Error al agregar');
       if (typeof window.refreshMiniCart === 'function') window.refreshMiniCart();
       if (typeof showToast === 'function') showToast('Producto agregado al carrito', 'success');
     } catch (err) {
