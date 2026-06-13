@@ -249,8 +249,6 @@ ddev php vendor/bin/phpunit tests/Helpers/CsrfTest.php
 **JuanDRK** - *Full Stack Developer*
 
 - GitHub: [@JuanDRK](https://github.com/JuanDRK)
-- LinkedIn: [tu-linkedin] *(agrega tu perfil)*
-- Email: [tu-email] *(agrega tu email)*
 
 ---
 
