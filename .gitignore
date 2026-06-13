@@ -4,6 +4,15 @@
 vendor/
 node_modules/
 
+# Config files with credentials (copy from config.example.ini)
+config/config.ini
+
+# Database dumps (may contain sensitive data)
+webcaps.sql
+*.sql
+
+# Keep migration scripts in database/migrations/
+
 # Runtime and logs
 *.log
 *.tmp

@@ -79,12 +79,11 @@ ddev composer install
 ### 4. Base de datos
 
 ```powershell
-# Crear BD e importar esquema
-ddev mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS webcaps CHARACTER SET utf8 COLLATE utf8_spanish_ci;"
+# Importar esquema inicial
 ddev import-db --src=database/schema/webcaps.sql
 ```
 
-Si no existe `database/schema/webcaps.sql`, usa el dump legacy:
+O si tienes el dump legacy:
 
 ```powershell
 ddev import-db --src=webcaps.sql
@@ -93,11 +92,35 @@ ddev import-db --src=webcaps.sql
 ### 5. Configurar entorno
 
 ```powershell
+# Copiar archivos de configuración de ejemplo
 ddev exec "cp .env.example .env"
 ddev exec "cp config/config.example.ini config/config.ini"
 ```
 
-Edita `.env` y `config/config.ini` con tus credenciales (DDEV usa `db` como host, `db` como usuario, `db` como clave, `webcaps` como base de datos).
+Edita `.env` y `config/config.ini` con tus credenciales.
+
+**DDEV (recomendado):**
+```ini
+dns="mysql:host=db;dbname=db"
+usuario="db"
+clave="db"
+```
+
+**Local/XAMPP:**
+```ini
+dns="mysql:host=localhost;dbname=webcaps"
+usuario="root"
+clave=""
+```
+
+### 6. Ejecutar migraciones
+
+```powershell
+# Desde DDEV
+ddev php database/migrations/migracion_cupones.php
+ddev php database/migrations/migracion_fotos_producto.php
+ddev php database/migrations/migracion_pedidos_descuento.php
+```
 
 Ejemplo de `config/config.ini` para DDEV:
 
