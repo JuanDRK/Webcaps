@@ -1,6 +1,7 @@
 <?php
 
 use PHPMailer\PHPMailer\PHPMailer;
+use capsweb\Services\Notificaciones;
 
 session_start();
 require 'carro/funcionesCarrito.php';
@@ -85,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Enviar notificaciones
-        $notif = new capsweb\Services\Notificaciones();
+        $notif = new Notificaciones();
         $infoPedido = $pedido->mostrarPorId($pedido_id);
         $itemsPedido = $pedido->mostrarDetallePorIdPedido($pedido_id);
         $infoCliente = $cliente->mostrarPorId($cliente_id);

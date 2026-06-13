@@ -3,7 +3,7 @@
         'name' => 'capsweb/webcaps',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '149818e4fc24f9d9a051f342c236d178ef9d05ab',
+        'reference' => '9eef3dff03047a20c574304590a40e2c48bc8ddb',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'capsweb/webcaps' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '149818e4fc24f9d9a051f342c236d178ef9d05ab',
+            'reference' => '9eef3dff03047a20c574304590a40e2c48bc8ddb',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -6,7 +6,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use PDO;
 
-$config = parse_ini_file(__DIR__ . '/config.ini');
+$config = parse_ini_file(__DIR__ . '/config/config.ini');
 $cn = new PDO($config['dns'], $config['usuario'], $config['clave'], [
     PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
 ]);

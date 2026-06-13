@@ -24,17 +24,33 @@ class pedidos
 
     public function registrar(array $_params): string|false
     {
-        $sql = "INSERT INTO `pedidos`(`cliente_id`, `total`, `fecha`, `estado`) 
-        VALUES (:cliente_id,:total,:fecha,:estado)";
-
-        $resultado = $this->cn->prepare($sql);
-
+        // Verificar si las columnas nuevas existen (para compatibilidad)
+        $sql = "INSERT INTO `pedidos`(`cliente_id`, `total`, `fecha`, `estado`";
+        $values = "VALUES (:cliente_id,:total,:fecha,:estado";
+        
         $_array = array(
             ":cliente_id" => $_params['cliente_id'],
             ":total" => $_params['total'],
             ":fecha" => $_params['fecha'],
             ":estado" => $_params['estado'] ?? 'Pendiente',
         );
+        
+        // Agregar campos opcionales si existen
+        if (isset($_params['descuento']) && $_params['descuento'] > 0) {
+            $sql .= ", `descuento`";
+            $values .= ",:descuento";
+            $_array[':descuento'] = $_params['descuento'];
+        }
+        
+        if (isset($_params['cupon_id']) && $_params['cupon_id']) {
+            $sql .= ", `cupon_id`";
+            $values .= ",:cupon_id";
+            $_array[':cupon_id'] = $_params['cupon_id'];
+        }
+        
+        $sql .= ") " . $values . ")";
+
+        $resultado = $this->cn->prepare($sql);
 
         if ($resultado->execute($_array))
             return $this->cn->lastInsertId();

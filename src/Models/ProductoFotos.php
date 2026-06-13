@@ -2,6 +2,8 @@
 namespace capsweb;
 use PDO;
 
+require_once __DIR__ . '/../Helpers/Paths.php';
+
 class ProductoFotos
 {
     private $cn;

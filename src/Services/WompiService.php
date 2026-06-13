@@ -1,6 +1,8 @@
 <?php
 namespace capsweb\Services;
 
+require_once __DIR__ . '/../Helpers/Paths.php';
+
 /**
  * Servicio básico para integración con Wompi (Colombia)
  * Requiere: WOMPI_PUBLIC_KEY y WOMPI_PRIVATE_KEY en config.ini
