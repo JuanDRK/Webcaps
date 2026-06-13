@@ -22,12 +22,12 @@
 
 | 🏠 Página Principal | 🛒 Carrito | 📊 Panel Admin |
 |:---:|:---:|:---:|
-| ![Home](docs/screenshots/home.png) | ![Cart](docs/screenshots/cart.png) | ![Admin](docs/screenshots/admin.png) |
+| ![Home](docs/screenshots/Home.jpeg) | ![Cart](docs/screenshots/Carro.jpeg) | ![Admin](docs/screenshots/admin.jpeg) |
 | *Catálogo con búsqueda predictiva* | *Checkout con cupones* | *Dashboard con métricas* |
 
 </div>
 
-> 📝 **Nota:** Agrega tus propias capturas en la carpeta `docs/screenshots/`
+> ✅ Capturas actualizadas - Junio 2026
 
 ---
 
