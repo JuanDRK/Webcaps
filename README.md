@@ -1,213 +1,269 @@
-# Webcaps
+<div align="center">
 
-Tienda online desarrollada en PHP con panel administrativo para gestionar productos, categorias y pedidos.
+# 🛍️ CAPS Culture - E-commerce Platform
 
-## Estado actual
+[![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
+[![Composer](https://img.shields.io/badge/Composer-885630?style=for-the-badge&logo=composer&logoColor=white)](https://getcomposer.org)
+[![DDEV](https://img.shields.io/badge/DDEV-1E90FF?style=for-the-badge&logo=docker&logoColor=white)](https://ddev.com)
 
-- Base funcional de e-commerce (catalogo, carrito, checkout, panel admin).
-- UI modernizada con **TailwindCSS** en todas las paginas publicas y del admin.
-- **Skeleton loaders** y **lazy loading** en el catalogo de productos.
-- **Toast notifications** reemplazan alerts del carrito.
-- **Dark mode** toggle persistente con `localStorage`.
-- **Búsqueda full-text** en tiempo real en el catalogo publico.
-- Mejoras de seguridad aplicadas: CSRF en login y panel, XSS sanitizacion, manejo de sesiones seguro.
-- Helpers de robustez: `Auth`, `Csrf`, `Database`, `Validator`.
-- Rutas absolutas con `__DIR__` en todo el panel y public proxies corregidos.
-- Stock se descuenta automaticamente al completar pedido.
-- Correo unificado por pedido (no por producto).
-- Front Controller con punto de entrada unico en `public/`.
-- Estructura reorganizada con separacion de responsabilidades.
+**Plataforma de e-commerce full-stack con pasarela de pagos, panel administrativo y gestión de inventario.**
 
-## Features de portafolio
+[📸 Ver Demo](#capturas-de-pantalla) • [🚀 Instalación](#instalación-rápida) • [📚 Documentación](#documentación) • [⚡ Características](#características-principales)
 
-| Feature | Descripcion | Archivos clave |
-|---------|-------------|----------------|
-| **Seeder** | Genera 20 productos, 10 pedidos y noticias de prueba | `database/seeder.php` |
-| **PDF Export** | Descarga orden de pedido en PDF desde el admin | `panel/pedidos/pdf.php` |
-| **API REST** | Endpoints JSON para productos y categorias | `api/productos.php`, `api/categorias.php` |
-| **Dashboard** | Metricas en cards + grafica Chart.js de ventas | `panel/productos/index.php` |
-| **Tests** | PHPUnit para helpers Csrf y Validator | `tests/Helpers/*` |
-| **Type Hints** | Tipado en modelos Productos, Pedidos, Categorias | `src/Models/*.php` |
+</div>
 
-## Stack recomendado (local)
+---
 
-| Herramienta | Funcion |
-|-------------|---------|
-| **DDEV** | Entorno Docker todo-en-uno (PHP, Nginx, MariaDB, Mailpit). Reemplaza XAMPP. |
-| **Composer 2.x** | Gestor de dependencias PHP. |
-| **PHP 8.2+** | Requerido por las dependencias actuales. |
+## 📸 Capturas de Pantalla
 
-### Por que DDEV en vez de XAMPP
+<div align="center">
 
-- **Un comando**: `ddev start` levanta todo el stack.
-- **Mailpit incluido**: captura emails sin enviarlos a produccion.
-- **Base de datos gestionada**: `ddev import-db` para cargar el esquema.
-- **SSL local gratuito**: HTTPS en desarrollo sin configuracion.
-- **Multi-proyecto**: puedes tener 10 proyectos simultaneos sin conflictos de puertos.
+| 🏠 Página Principal | 🛒 Carrito | 📊 Panel Admin |
+|:---:|:---:|:---:|
+| ![Home](docs/screenshots/home.png) | ![Cart](docs/screenshots/cart.png) | ![Admin](docs/screenshots/admin.png) |
+| *Catálogo con búsqueda predictiva* | *Checkout con cupones* | *Dashboard con métricas* |
 
-## Despliegue local con DDEV
+</div>
 
-### 1. Instalar DDEV
+> 📝 **Nota:** Agrega tus propias capturas en la carpeta `docs/screenshots/`
 
-```powershell
-# Windows (con Chocolatey)
-choco install ddev
+---
 
-# O descarga desde https://ddev.com/get-started
+## ⚡ Características Principales
+
+### 🛍️ **Cliente (Frontend)**
+- ✅ **Catálogo dinámico** con filtros por categoría, precio y talla
+- ✅ **Búsqueda predictiva** con autocompletado en tiempo real
+- ✅ **Carrito persistente** vía sesiones PHP
+- ✅ **Checkout optimizado** con validación de cupones de descuento
+- ✅ **Pasarela de pagos** integrada (Wompi - Colombia)
+- ✅ **Dark mode** toggle con persistencia local
+- ✅ **Diseño responsive** con TailwindCSS
+
+### 🔐 **Administrador (Panel)**
+- ✅ **Dashboard** con métricas de ventas y gráficos Chart.js
+- ✅ **Gestión de productos** CRUD completo con upload de imágenes
+- ✅ **Gestión de pedidos** con cambio de estados y calendario mensual
+- ✅ **Exportar pedidos** a CSV
+- ✅ **Gestión de cupones** (descuentos por porcentaje o valor fijo)
+- ✅ **Notificaciones por email** al recibir nuevos pedidos
+
+### 🛡️ **Seguridad**
+- ✅ **CSRF tokens** en todos los formularios
+- ✅ **Prepared statements** (PDO) - protección contra SQL Injection
+- ✅ **Sanitización de input** contra XSS
+- ✅ **Validación de archivos** (uploads con mime-type check)
+- ✅ **Password hashing** con `password_hash()`
+- ✅ **Session security** con `session_regenerate_id()`
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### **Backend**
+```
+PHP 8.2+      → Lenguaje principal
+PDO           → Database abstraction layer
+Composer      → Gestión de dependencias
+PHPMailer     → Envío de emails
 ```
 
-### 2. Iniciar proyecto
+### **Frontend**
+```
+TailwindCSS   → Framework CSS utilitario
+Vanilla JS    → Interactividad (ES6+)
+Chart.js      → Gráficos en dashboard
+```
 
-```powershell
+### **DevOps & Tools**
+```
+DDEV          → Entorno de desarrollo Docker-based
+PHPUnit       → Testing de helpers
+Git           → Control de versiones
+```
+
+---
+
+## 🏗️ Arquitectura
+
+```
+Webcaps/
+├── public/              # Document root (front controller)
+│   ├── index.php         # Landing page
+│   ├── api/              # Endpoints REST
+│   └── panel/            # Proxies del panel admin
+│
+├── src/                  # Código fuente (MVC)
+│   ├── Models/           # Capa de datos (Productos, Pedidos, etc.)
+│   ├── Services/         # Lógica de negocio (Wompi, Email)
+│   └── Helpers/          # Utilidades (Database, Csrf, Validator)
+│
+├── database/
+│   └── migrations/       # Scripts de migración de BD
+│
+├── templates/            # Componentes reutilizables (header, footer)
+├── config/               # Configuración (gitignored)
+└── tests/                # Tests unitarios (PHPUnit)
+```
+
+### **Patrones Implementados**
+- 🎨 **MVC (Model-View-Controller)**
+- 🔌 **Front Controller Pattern** (`public/` como único punto de entrada)
+- 🏭 **Lazy Loading** de dependencias
+- 🔐 **Repository Pattern** para acceso a datos
+
+---
+
+## 🚀 Instalación Rápida
+
+### **Opción 1: DDEV (Recomendado)**
+
+```bash
+# 1. Clonar repositorio
+git clone https://github.com/JuanDRK/Webcaps.git
 cd Webcaps
 
-# Crear configuracion DDEV (solo la primera vez)
+# 2. Configurar DDEV (primera vez)
 ddev config --project-type=php --docroot=public --create-docroot
-
-# Levantar el entorno
 ddev start
-```
 
-> `--docroot=public` asegura que solo la carpeta `public/` sea accesible desde la web.
-
-### 3. Instalar dependencias PHP
-
-```powershell
+# 3. Instalar dependencias
 ddev composer install
-```
 
-### 4. Base de datos
+# 4. Configurar entorno
+cp config/config.example.ini config/config.ini
+# Editar config.ini con credenciales de DDEV:
+# dns="mysql:host=db;dbname=db"
+# usuario="db"
+# clave="db"
 
-```powershell
-# Importar esquema inicial
-ddev import-db --src=database/schema/webcaps.sql
-```
-
-O si tienes el dump legacy:
-
-```powershell
+# 5. Importar base de datos
 ddev import-db --src=webcaps.sql
-```
 
-### 5. Configurar entorno
-
-```powershell
-# Copiar archivos de configuración de ejemplo
-ddev exec "cp .env.example .env"
-ddev exec "cp config/config.example.ini config/config.ini"
-```
-
-Edita `.env` y `config/config.ini` con tus credenciales.
-
-**DDEV (recomendado):**
-```ini
-dns="mysql:host=db;dbname=db"
-usuario="db"
-clave="db"
-```
-
-**Local/XAMPP:**
-```ini
-dns="mysql:host=localhost;dbname=webcaps"
-usuario="root"
-clave=""
-```
-
-### 6. Ejecutar migraciones
-
-```powershell
-# Desde DDEV
+# 6. Ejecutar migraciones
 ddev php database/migrations/migracion_cupones.php
 ddev php database/migrations/migracion_fotos_producto.php
 ddev php database/migrations/migracion_pedidos_descuento.php
+
+# 7. Abrir proyecto
+ddev launch
 ```
 
-Ejemplo de `config/config.ini` para DDEV:
+### **Opción 2: XAMPP/WAMP**
 
-```ini
-dns="mysql:host=db;dbname=webcaps"
-usuario = "db"
-clave = "db"
+```bash
+# 1. Copiar a htdocs
+cd C:\xampp\htdocs
+git clone https://github.com/JuanDRK/Webcaps.git
+
+# 2. Instalar dependencias
+cd Webcaps
+composer install
+
+# 3. Configurar
+# Copiar config/config.example.ini → config/config.ini
+# Editar con: host=localhost, user=root, pass=""
+
+# 4. Crear BD en phpMyAdmin
+# Nombre: webcaps
+# Importar: webcaps.sql
 ```
 
-### 6. Acceder
+### **Accesos por defecto**
 
-- **Web**: `https://webcaps.ddev.site`
-- **Panel admin**: `https://webcaps.ddev.site/acceso.php`
-- **Mailpit** (emails capturados): `https://webcaps.ddev.site:8025`
-- **phpMyAdmin**: `ddev launch -p`
+| URL | Descripción |
+|-----|-------------|
+| `http://webcaps.ddev.site` | Página principal |
+| `http://webcaps.ddev.site/acceso.php` | Panel admin |
+| `http://webcaps.ddev.site:8026` | Mailpit (emails capturados) |
 
-### Comandos utiles de DDEV
+---
 
-```powershell
-ddev start       # Levantar proyecto
-ddev stop        # Detener proyecto
-ddev restart     # Reiniciar
-ddev ssh         # Entrar al contenedor
-ddev logs        # Ver logs de errores
-ddev mailpit     # Abrir Mailpit
-ddev poweroff    # Apagar TODOS los proyectos DDEV
+## 📚 API Endpoints
+
+### **Productos**
+```http
+GET  /api/productos.php          # Listar todos
+GET  /api/productos.php?id=1     # Obtener uno
+POST /api/productos.php          # Crear (admin)
 ```
 
-## Estructura del proyecto (reorganizada)
-
-```text
-Webcaps/
-├── public/                  # Document root (unico accesible web)
-│   ├── index.php            # Front Controller
-│   ├── assets/              # CSS, JS, imagenes estaticas
-│   ├── upload/              # Archivos subidos por usuarios
-│   ├── Carro/               # Proxies del carrito (checkout)
-│   ├── panel/               # Proxies del panel admin
-│   └── .htaccess            # Rewrite rules
-│
-├── src/                     # Codigo PHP (autoload classmap)
-│   ├── Models/              # Clases de acceso a datos
-│   │   ├── Productos.php
-│   │   ├── Pedidos.php
-│   │   ├── Clientes.php
-│   │   ├── Categorias.php
-│   │   ├── Noticias.php
-│   │   └── InfoPrenda.php
-│   ├── Services/            # Logica de negocio reutilizable
-│   │   └── EmailService.php
-│   └── Helpers/             # Funciones auxiliares
-│       └── Paths.php
-│
-├── templates/               # Plantillas HTML/PHP
-│   ├── cabecera.php
-│   ├── footer.php
-│   ├── cabeceraAdmin.php
-│   └── carroCabecera.php
-│
-├── Carro/                   # Logica legada del carrito
-│   ├── index.php
-│   ├── funcionesCarrito.php
-│   ├── actualizar_carrito.php
-│   └── eliminar_carrito.php
-│
-├── panel/                   # Panel admin (logica legada)
-├── config/                  # Configuracion
-│   ├── config.ini
-│   └── config.example.ini
-│
-├── database/                # Esquemas SQL
-├── docs/                    # Documentacion tecnica
-├── composer.json
-├── bootstrap.php            # Carga inicial de la aplicacion
-└── vendor/                  # Dependencias Composer
+### **Búsqueda**
+```http
+GET /api/busqueda.php?q=gorra    # Búsqueda predictiva
 ```
 
-## Convenciones recomendadas
+### **Cupones**
+```http
+POST /api/validar_cupon.php      # Validar cupón
+# Body: { "codigo": "BIENVENIDO", "total": 50000 }
+```
 
-- **Document root obligatorio**: el servidor debe apuntar siempre a `public/`.
-- **No subir secretos**: `.env` y `config.ini` estan en `.gitignore`.
-- **Mantener `vendor/` fuera de Git**.
-- **Crear un branch por feature/fix**.
+### **Pagos (Wompi)**
+```http
+POST /api/wompi_tokenizar.php    # Tokenizar tarjeta
+POST /api/wompi_transaccion.php  # Procesar pago
+```
 
-## Documentacion adicional
+---
 
-- `docs/PROJECT_STRUCTURE.md`
-- `docs/DEVELOPMENT_PLAN.md`
-- `docs/SECURITY_BASELINE.md`
-- `docs/MIGRATION_STRUCTURE_PHASE2.md`
+## 🧪 Testing
+
+```bash
+# Ejecutar tests unitarios
+ddev php vendor/bin/phpunit
+
+# Tests específicos
+ddev php vendor/bin/phpunit tests/Helpers/CsrfTest.php
+```
+
+---
+
+## 📋 Roadmap / Futuras Mejoras
+
+- [ ] **Testing end-to-end** con Playwright
+- [ ] **CI/CD pipeline** con GitHub Actions
+- [ ] **API documentation** con Swagger/OpenAPI
+- [ ] **Cache layer** con Redis
+- [ ] **Multi-idioma** (i18n)
+- [ ] **Progressive Web App** (PWA)
+- [ ] **Reportes avanzados** con filtros de fecha
+- [ ] **Sistema de reseñas** de productos
+
+---
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
+2. Crea tu feature branch (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -am 'Add: nueva funcionalidad'`)
+4. Push a la branch (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
+
+---
+
+## 👨‍💻 Autor
+
+**JuanDRK** - *Full Stack Developer*
+
+- GitHub: [@JuanDRK](https://github.com/JuanDRK)
+- LinkedIn: [tu-linkedin] *(agrega tu perfil)*
+- Email: [tu-email] *(agrega tu email)*
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+
+---
+
+<div align="center">
+
+⭐ **Si te gustó este proyecto, dale una estrella!** ⭐
+
+Hecho con ❤️ y ☕ en Colombia
+
+</div>
