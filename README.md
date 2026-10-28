@@ -20,14 +20,19 @@
 
 <div align="center">
 
-| 🏠 Página Principal | 🛒 Carrito | 📊 Panel Admin |
+| 🏠 Página Principal | �️ Detalle de Producto | � Carrito |
 |:---:|:---:|:---:|
-| ![Home](docs/screenshots/Home.jpeg) | ![Cart](docs/screenshots/Carro.jpeg) | ![Admin](docs/screenshots/admin.jpeg) |
-| *Catálogo con búsqueda predictiva* | *Checkout con cupones* | *Dashboard con métricas* |
+| ![Home](docs/screenshots/Home.jpeg) | ![Producto](docs/screenshots/Producto.jpeg) | ![Cart](docs/screenshots/Carro.jpeg) |
+| *Catálogo con búsqueda predictiva* | *Galería con carrusel de fotos* | *Checkout con cupones* |
+
+| 🔐 Login Admin | 📊 Panel Admin |
+|:---:|:---:|
+| ![Login](docs/screenshots/Login.jpeg) | ![Admin](docs/screenshots/admin.jpeg) |
+| *Acceso seguro con CSRF* | *Dashboard con métricas y top productos* |
 
 </div>
 
-> ✅ Capturas actualizadas - Junio 2026
+> ✅ Capturas actualizadas - Octubre 2026
 
 ---
 
@@ -151,7 +156,33 @@ ddev php database/migrations/migracion_pedidos_descuento.php
 ddev launch
 ```
 
-### **Opción 2: XAMPP/WAMP**
+### **Opción 2: Docker (sin DDEV)**
+
+Si tienes Docker Desktop pero no DDEV, puedes levantar el stack con dos contenedores:
+
+```bash
+# 1. Construir la imagen PHP (Apache + extensiones + Composer)
+docker build -t webcaps-php docker/
+
+# 2. Crear red y levantar MariaDB + Web
+docker network create webcaps-net
+docker run -d --name webcaps-db --network webcaps-net --network-alias db \
+  -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=db \
+  -e MARIADB_USER=db -e MARIADB_PASSWORD=db mariadb:11.8
+docker run -d --name webcaps-web --network webcaps-net -p 8088:80 \
+  -v ${PWD}:/var/www/html webcaps-php
+
+# 3. Dependencias, BD y migraciones
+docker exec webcaps-web composer install
+docker exec -i webcaps-db mariadb -udb -pdb db < webcaps.sql
+docker exec webcaps-web sh -c 'for f in database/migrations/*.php; do php "$f"; done'
+
+# 4. Abrir http://localhost:8088
+```
+
+> El `config.ini` del repo apunta a `host=db` con credenciales `db`/`db`, que coincide con el contenedor MariaDB. El archivo `webcaps.sql` está en `.gitignore` (datos sensibles) — consíguelo del equipo o genera tu propio dump.
+
+### **Opción 3: XAMPP/WAMP**
 
 ```bash
 # 1. Copiar a htdocs

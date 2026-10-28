@@ -85,6 +85,7 @@ class Productos
     {
         $sql = " SELECT productos.id, productos.referencia, productos.foto, productos.categoria_id,
         productos.precio, productos.stock, categorias.categoria, productos.tallas,
+        productos.estado, productos.fecha, productos.descripcion,
         COALESCE(SUM(dp.cantidad), 0) AS cantidad_vendida
         FROM `productos`
         INNER JOIN `categorias` ON productos.categoria_id = categorias.id
